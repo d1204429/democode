@@ -5,6 +5,13 @@ document.getElementById('startButton').addEventListener('click', startScanner);
 
 async function startScanner() {
     try {
+        // 先確認是否有取得相機權限
+        const permissionResult = await navigator.permissions.query({ name: 'camera' });
+        if (permissionResult.state === 'denied') {
+            alert('請允許使用相機權限');
+            return;
+        }
+
         // 先嘗試獲取相機權限
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         stream.getTracks().forEach(track => track.stop());
