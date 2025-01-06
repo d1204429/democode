@@ -2,15 +2,24 @@
 const secretKey = "YourSecretKey123";
 let html5QrcodeScanner = null;
 
-function startScanner() {
-    document.getElementById('reader').style.display = 'block';
-    document.getElementById('startButton').style.display = 'none';
+async function startScanner() {
+    try {
+        // 先請求相機權限
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream.getTracks().forEach(track => track.stop()); // 立即停止，等掃描器使用
 
-    html5QrcodeScanner = new Html5QrcodeScanner(
-        "reader",
-        { fps: 10, qrbox: { width: 250, height: 250 } }
-    );
-    html5QrcodeScanner.render(onScanSuccess, onScanError);
+        document.getElementById('reader').style.display = 'block';
+        document.getElementById('startButton').style.display = 'none';
+
+        html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader",
+            { fps: 10, qrbox: { width: 250, height: 250 } }
+        );
+        html5QrcodeScanner.render(onScanSuccess, onScanError);
+
+    } catch (err) {
+        alert('請允許使用相機權限：' + err.message);
+    }
 }
 
 function decryptData(encryptedData) {
