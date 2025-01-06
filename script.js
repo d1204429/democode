@@ -1,30 +1,41 @@
 const secretKey = "yopah4rxTG36FImP";
 let html5Qrcode = null;
 
-document.getElementById('startButton').addEventListener('click', startScanner);
+document.getElementById('startButton').addEventListener('click', () => {
+    startScanner().catch(err => {
+        alert('相機啟動失敗: ' + err.message);
+        resetUI();
+    });
+});
 
 async function startScanner() {
     try {
+        // 先檢查相機權限
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment' }
+            });
+            stream.getTracks().forEach(track => track.stop());
+        } catch(e) {
+            throw new Error('請允許相機權限後重試');
+        }
+
         html5Qrcode = new Html5Qrcode("reader");
         document.getElementById('reader').style.display = 'block';
         document.getElementById('startButton').style.display = 'none';
 
-        const config = {
-            fps: 10,
-            qrbox: { width: 250, height: 250 }
-        };
-
         await html5Qrcode.start(
-            { facingMode: "environment" },
-            config,
+            { facingMode: { exact: "environment" } },
+            {
+                fps: 10,
+                qrbox: { width: 250, height: 250 }
+            },
             onScanSuccess,
             onScanError
         );
 
     } catch (err) {
-        console.error('相機錯誤:', err);
-        alert('啟動相機失敗，請確保已授予相機權限：' + err.message);
-        resetUI();
+        throw err;
     }
 }
 
@@ -73,7 +84,7 @@ function onScanSuccess(decodedText, decodedResult) {
 }
 
 function onScanError(errorMessage) {
-    // console.log(errorMessage);
+    // 移除掉不必要的錯誤日誌
 }
 
 function stopScanner() {

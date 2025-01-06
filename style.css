@@ -14,12 +14,10 @@ h1 {
     margin: 0 auto;
     max-width: 640px;
     width: 100%;
-    /* 確保相機視窗為正方形 */
     aspect-ratio: 1;
     display: none;
 }
 
-/* 控制相機畫面大小 */
 #reader video {
     width: 100% !important;
     height: 100% !important;
