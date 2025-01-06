@@ -1,17 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>電影票掃描驗證</title>
+    <title>QR Code 掃描器</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
 </head>
 <body>
-<div class="container">
-    <div id="reader"></div>
-    <div id="result"></div>
+<h1>QR Code 掃描器</h1>
+<div class="card">
+    <div class="card-header">
+        <h2>攝影機預覽</h2>
+    </div>
+    <div class="card-body">
+        <div id="reader"></div>
+        <p id="result">掃描結果會顯示在這裡</p>
+    </div>
 </div>
 <script src="script.js"></script>
 </body>
