@@ -5,36 +5,24 @@ body {
 }
 
 .container {
-    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
-    box-sizing: border-box;
-}
-
-#video {
     width: 100%;
-    max-width: 500px;
-    height: auto;
-    margin-top: 10px;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
 }
 
-#startButton {
-    margin: 10px;
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
+#reader {
+    width: 100%;
+    height: 30vh;
+    max-height: 300px;
 }
 
 #result {
-    margin-top: 20px;
-    text-align: center;
     width: 100%;
     padding: 10px;
-    background-color: #f8f9fa;
-    border-radius: 5px;
+    background-color: #f0f0f0;
+    text-align: center;
 }

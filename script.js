@@ -1,67 +1,57 @@
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
+const html5QrCode = new Html5Qrcode("reader");
 const resultDiv = document.getElementById('result');
 
-document.getElementById('startButton').addEventListener('click', async () => {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: { ideal: "environment" } // 確保使用後置鏡頭
-            }
-        });
-        video.srcObject = stream;
-        video.setAttribute('playsinline', true);
-        video.play();
+function startScanning() {
+    Html5Qrcode.getCameras().then(devices => {
+        if (devices && devices.length) {
+            const backCamera = devices.find(device =>
+                device.label.toLowerCase().includes('back') ||
+                device.label.toLowerCase().includes('rear')
+            ) || devices[devices.length - 1];
 
-        let scanning = true;
-        function tick() {
-            if (!scanning) return;
-
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                canvas.height = video.videoHeight;
-                canvas.width = video.videoWidth;
-
-                const context = canvas.getContext('2d');
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: "dontInvert",
-                });
-
-                if (code) {
-                    scanning = false;
-                    const decryptedText = decryptData(code.data);
-                    resultDiv.innerHTML = `
-                        <p>原始票券碼: ${code.data}</p>
-                        <p>解密結果: ${decryptedText}</p>
-                    `;
-                    stream.getTracks().forEach(track => track.stop());
-                    return;
-                }
-            }
-
-            requestAnimationFrame(tick);
+            html5QrCode.start(
+                backCamera.id,
+                {
+                    fps: 10,
+                    qrbox: 250
+                },
+                onScanSuccess,
+                onScanFailure
+            );
         }
+    }).catch(err => {
+        resultDiv.innerHTML = `開啟相機失敗：${err.message}`;
+    });
+}
 
-        requestAnimationFrame(tick);
-    } catch (err) {
-        console.error(err);
-        alert('開啟相機失敗：' + err.message);
+function onScanSuccess(decodedText, decodedResult) {
+    try {
+        const decryptedText = decryptData(decodedText);
+        resultDiv.innerHTML = `
+            <p>原始票券碼: ${decodedText}</p>
+            <p>解密結果: ${decryptedText}</p>
+        `;
+    } catch (error) {
+        resultDiv.innerHTML = `解密失敗：${error.message}`;
     }
-});
+}
+
+function onScanFailure(error) {
+    console.log(`掃描失敗：${error}`);
+}
 
 function decryptData(encryptedData) {
     try {
-        // Base64 解碼並解密
         const bytes = CryptoJS.AES.decrypt(
             CryptoJS.enc.Base64.parse(encryptedData).toString(CryptoJS.enc.Base64),
-            'yopah4rxTG36FImP' // 替換為實際的加密金鑰
+            'yopah4rxTG36FImP'
         );
         const decrypted = bytes.toString(CryptoJS.enc.Utf8);
-
         return decrypted || "解密失敗：無效的密文";
     } catch (e) {
         return "解密失敗: " + e.message;
     }
 }
+
+// 開始掃描
+startScanning();
