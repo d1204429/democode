@@ -6,7 +6,7 @@ document.getElementById('startButton').addEventListener('click', async () => {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({
             video: {
-                facingMode: { ideal: "environment" } // 確保使用後置鏡頭
+                facingMode: "environment" // 確保使用後置鏡頭
             }
         });
         video.srcObject = stream;
