@@ -1,17 +1,10 @@
-const secretKey = "YourSecretKey123";
-
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const resultDiv = document.getElementById('result');
 
 document.getElementById('startButton').addEventListener('click', async () => {
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: 'environment'
-            }
-        });
-
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         video.srcObject = stream;
         video.setAttribute('playsinline', true);
         video.play();
@@ -52,7 +45,11 @@ document.getElementById('startButton').addEventListener('click', async () => {
 
 function decryptData(encryptedData) {
     try {
-        const bytes = CryptoJS.AES.decrypt(encryptedData, secretKey);
+        // Base64 解碼並解密
+        const bytes = CryptoJS.AES.decrypt(
+            CryptoJS.enc.Base64.parse(encryptedData).toString(CryptoJS.enc.Base64),
+            'yopah4rxTG36FImP' // 替換為實際的加密金鑰
+        );
         const decrypted = bytes.toString(CryptoJS.enc.Utf8);
 
         return decrypted || "解密失敗：無效的密文";
