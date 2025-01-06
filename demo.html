@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>電影票 QR Code 掃描驗證</title>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <div class="instructions">
+        <h2>電影票 QR Code 掃描驗證</h2>
+        <div class="steps">
+            <p>使用步驟:</p>
+            <ol>
+                <li>點擊「開始掃描」</li>
+                <li>允許使用相機</li>
+                <li>對準電影票 QR Code</li>
+            </ol>
+        </div>
+    </div>
+
+    <button id="startButton" onclick="startScanner()">開始掃描</button>
+    <div id="reader"></div>
+    <div id="result"></div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
