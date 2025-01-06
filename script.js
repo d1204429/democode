@@ -4,14 +4,19 @@ const resultDiv = document.getElementById('result');
 
 document.getElementById('startButton').addEventListener('click', async () => {
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: { ideal: "environment" } // 確保使用後置鏡頭
+            }
+        });
         video.srcObject = stream;
         video.setAttribute('playsinline', true);
         video.play();
 
-        requestAnimationFrame(tick);
-
+        let scanning = true;
         function tick() {
+            if (!scanning) return;
+
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
                 canvas.height = video.videoHeight;
                 canvas.width = video.videoWidth;
@@ -25,6 +30,7 @@ document.getElementById('startButton').addEventListener('click', async () => {
                 });
 
                 if (code) {
+                    scanning = false;
                     const decryptedText = decryptData(code.data);
                     resultDiv.innerHTML = `
                         <p>原始票券碼: ${code.data}</p>
@@ -37,6 +43,8 @@ document.getElementById('startButton').addEventListener('click', async () => {
 
             requestAnimationFrame(tick);
         }
+
+        requestAnimationFrame(tick);
     } catch (err) {
         console.error(err);
         alert('開啟相機失敗：' + err.message);
