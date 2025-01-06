@@ -38,15 +38,23 @@ async function startScanner() {
 }
 
 function onScanSuccess(decodedText, decodedResult) {
-    // 顯示掃描到的所有資料
-    document.getElementById('scannedText').innerText = decodedText;
+    // 顯示掃描到的原始資料
+    document.getElementById('scannedText').innerText = String(decodedText);
 
     try {
-        const jsonData = JSON.parse(decodedText);
-        // 顯示格式化的 JSON 資料
-        document.getElementById('decodedText').innerText = JSON.stringify(jsonData, null, 2);
+        // 解密處理
+        const key = CryptoJS.enc.Utf8.parse(secretKey);
+        const qrData = JSON.parse(decodedText).qrCodeData;
+        const decryptedBytes = CryptoJS.AES.decrypt(qrData, key, {
+            mode: CryptoJS.mode.ECB,
+            padding: CryptoJS.pad.Pkcs7
+        });
+
+        // 轉換為字串並顯示
+        const decryptedText = decryptedBytes.toString(CryptoJS.enc.Utf8);
+        document.getElementById('decodedText').innerText = String(decryptedText);
     } catch (error) {
-        document.getElementById('decodedText').innerText = decodedText;
+        document.getElementById('decodedText').innerText = '解密失敗: ' + String(error.message);
     }
 
     stopScanner();
