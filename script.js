@@ -51,42 +51,75 @@ async function startScanner() {
 // 修改解密函數以處理新的 QR Code 格式
 function decryptData(encryptedData) {
     try {
+        // 1. 記錄原始數據
+        console.log('原始掃描數據:', encryptedData);
+
+        // 2. 嘗試解析 JSON
         let qrData;
         try {
             const jsonData = JSON.parse(encryptedData);
             qrData = jsonData.qrCodeData;
+            console.log('從JSON解析的qrCodeData:', qrData);
         } catch (e) {
             qrData = encryptedData;
+            console.log('使用原始數據作為qrCodeData:', qrData);
         }
 
+        // 3. 進行解密前的準備
+        const key = CryptoJS.enc.Utf8.parse(secretKey); // 正確處理密鑰
+        console.log('使用的密鑰:', secretKey);
+
+        // 4. 執行解密
         const decryptedBytes = CryptoJS.AES.decrypt(
             qrData,
-            secretKey,
+            key,
             {
                 mode: CryptoJS.mode.ECB,
                 padding: CryptoJS.pad.Pkcs7
             }
         );
+        console.log('解密後的bytes:', decryptedBytes);
 
+        // 5. 轉換結果
         const decryptedText = decryptedBytes.toString(CryptoJS.enc.Utf8);
+        console.log('解密後的文本:', decryptedText);
 
+        // 6. 檢查結果
         if (!decryptedText) {
             throw new Error("解密結果為空");
         }
 
-        return decryptedText;
+        // 7. 嘗試解析解密後的 JSON
+        try {
+            const jsonResult = JSON.parse(decryptedText);
+            console.log('解析JSON成功:', jsonResult);
+            return JSON.stringify(jsonResult, null, 2); // 格式化輸出
+        } catch (e) {
+            console.log('結果不是JSON格式，返回原文');
+            return decryptedText;
+        }
+
     } catch (e) {
+        console.error('解密過程出錯:', e);
         throw e;
     }
 }
 
 function onScanSuccess(decodedText, decodedResult) {
+    console.log('掃描成功，開始處理');
+
+    // 顯示原始掃描結果
     document.getElementById('scannedText').innerText = decodedText;
 
     try {
+        // 嘗試解密
         const decryptedText = decryptData(decodedText);
+        console.log('解密完成:', decryptedText);
+
+        // 顯示解密結果
         document.getElementById('decodedText').innerText = decryptedText;
     } catch (error) {
+        console.error('處理掃描結果時出錯:', error);
         document.getElementById('decodedText').innerText = `解密失敗: ${error.message}`;
     }
 
