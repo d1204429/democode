@@ -1,58 +1,78 @@
-const html5QrCode = new Html5Qrcode("reader");
+const secretKey = "yopah4rxTG36FImP";
+let html5Qrcode = null;
 
-// 預設金鑰
-const publicKey = "yopah4rxTG36FImP";
+document.getElementById('startButton').addEventListener('click', startScanner);
 
-/**
- * Base64 解碼函數
- * @param {string} base64String - Base64 編碼的字串
- * @returns {string} 解碼後的內容
- */
-function decodeBase64(base64String) {
+async function startScanner() {
     try {
-        return atob(base64String);
-    } catch (error) {
-        console.error("Base64 解碼失敗", error);
-        return "Base64 解碼失敗";
+        // 先嘗試獲取相機權限
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream.getTracks().forEach(track => track.stop());
+
+        document.getElementById('reader').style.display = 'block';
+        document.getElementById('startButton').style.display = 'none';
+
+        html5Qrcode = new Html5Qrcode("reader");
+
+        // 獲取可用的相機列表
+        const devices = await Html5Qrcode.getCameras();
+        if (devices && devices.length) {
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 }
+            };
+
+            // 使用最後一個相機（通常是後置相機）
+            const cameraId = devices[devices.length - 1].id;
+
+            await html5Qrcode.start(
+                cameraId,
+                config,
+                onScanSuccess,
+                onScanError
+            );
+        } else {
+            throw new Error('沒有找到可用的相機');
+        }
+    } catch (err) {
+        console.error('相機錯誤:', err);
+        alert('啟動相機失敗，請確保已授予相機權限：' + err.message);
+        resetUI();
     }
 }
 
-/**
- * 處理掃描成功
- */
 function onScanSuccess(decodedText, decodedResult) {
-    console.log("掃描成功", decodedText);
-
-    const decodedContent = decodeBase64(decodedText);
-    console.log("Base64 解碼結果", decodedContent);
-
-    const finalResult = `解碼內容: ${decodedContent}\n金鑰: ${publicKey}`;
-
-    html5QrCode.stop().then(() => {
-        document.getElementById("result").textContent = finalResult;
-    }).catch(err => {
-        console.error("停止掃描錯誤", err);
-    });
+    const decryptedText = decryptData(decodedText);
+    document.getElementById('scannedText').innerText = decodedText;
+    document.getElementById('decodedText').innerText = decryptedText;
+    stopScanner();
 }
 
-/**
- * 處理掃描錯誤
- */
 function onScanError(errorMessage) {
-    console.warn(`掃描錯誤: ${errorMessage}`);
+    console.log(errorMessage);
 }
 
-// 初始化相機
-Html5Qrcode.getCameras().then(cameras => {
-    if (cameras && cameras.length) {
-        const cameraId = cameras[0].id;
-        html5QrCode.start(cameraId, {
-            fps: 10,
-            qrbox: { width: 200, height: 200 }
-        }, onScanSuccess, onScanError);
-    } else {
-        alert("未找到可用的相機！");
+function decryptData(encryptedData) {
+    try {
+        const bytes = CryptoJS.AES.decrypt(encryptedData, secretKey);
+        return bytes.toString(CryptoJS.enc.Utf8);
+    } catch (e) {
+        return "解密失敗: " + e.message;
     }
-}).catch(err => {
-    console.error("取得相機失敗", err);
-});
+}
+
+function stopScanner() {
+    if (html5Qrcode) {
+        html5Qrcode.stop().then(() => {
+            document.getElementById('startButton').style.display = 'block';
+            document.getElementById('reader').style.display = 'none';
+        });
+    }
+}
+
+function resetUI() {
+    document.getElementById('startButton').style.display = 'block';
+    document.getElementById('reader').style.display = 'none';
+    document.getElementById('scannedText').innerText = '';
+    document.getElementById('decodedText').innerText = '';
+}
