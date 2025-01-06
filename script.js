@@ -14,7 +14,6 @@ async function startScanner() {
 
         html5Qrcode = new Html5Qrcode("reader");
 
-        // 獲取可用的相機列表
         const devices = await Html5Qrcode.getCameras();
         if (devices && devices.length) {
             const config = {
@@ -22,7 +21,7 @@ async function startScanner() {
                 qrbox: { width: 250, height: 250 }
             };
 
-            // 使用最後一個相機（通常是後置相機）
+            // 使用後置相機
             const cameraId = devices[devices.length - 1].id;
 
             await html5Qrcode.start(
@@ -42,23 +41,48 @@ async function startScanner() {
 }
 
 function onScanSuccess(decodedText, decodedResult) {
-    const decryptedText = decryptData(decodedText);
-    document.getElementById('scannedText').innerText = decodedText;
-    document.getElementById('decodedText').innerText = decryptedText;
+    try {
+        const decryptedText = decryptData(decodedText);
+        document.getElementById('scannedText').innerText = decodedText;
+        document.getElementById('decodedText').innerText = decryptedText;
+    } catch (error) {
+        document.getElementById('decodedText').innerText = "解密失敗: " + error.message;
+    }
     stopScanner();
-}
-
-function onScanError(errorMessage) {
-    console.log(errorMessage);
 }
 
 function decryptData(encryptedData) {
     try {
-        const bytes = CryptoJS.AES.decrypt(encryptedData, secretKey);
-        return bytes.toString(CryptoJS.enc.Utf8);
+        // 解密
+        const decryptedBytes = CryptoJS.AES.decrypt(encryptedData, secretKey);
+        const decryptedText = decryptedBytes.toString(CryptoJS.enc.Utf8);
+
+        if (!decryptedText) {
+            throw new Error("解密結果為空");
+        }
+
+        // 驗證解密後的格式
+        if (!decryptedText.match(/^TIX-\d{4}-\d{6}-[a-f0-9]{8}$/)) {
+            throw new Error("解密後格式不符合預期");
+        }
+
+        // 解析票券資訊
+        const [prefix, year, ticketId, uuid] = decryptedText.split('-');
+
+        return `票券資訊:
+前綴: ${prefix}
+年份: ${year}
+票號: ${ticketId}
+驗證碼: ${uuid}`;
+
     } catch (e) {
-        return "解密失敗: " + e.message;
+        console.error('詳細錯誤:', e);
+        throw new Error(e.message || "解密過程出錯");
     }
+}
+
+function onScanError(errorMessage) {
+    console.error('掃描錯誤:', errorMessage);
 }
 
 function stopScanner() {
