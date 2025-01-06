@@ -38,13 +38,15 @@ async function startScanner() {
 }
 
 function onScanSuccess(decodedText, decodedResult) {
+    // 顯示掃描到的所有資料
     document.getElementById('scannedText').innerText = decodedText;
 
     try {
-        const decryptedText = decryptData(decodedText);
-        document.getElementById('decodedText').innerText = decryptedText;
+        const jsonData = JSON.parse(decodedText);
+        // 顯示格式化的 JSON 資料
+        document.getElementById('decodedText').innerText = JSON.stringify(jsonData, null, 2);
     } catch (error) {
-        document.getElementById('decodedText').innerText = error.message;
+        document.getElementById('decodedText').innerText = decodedText;
     }
 
     stopScanner();
